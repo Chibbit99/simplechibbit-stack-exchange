@@ -1263,25 +1263,22 @@
 
     // SIGN IN ACTION INTERCEPTS
     document.getElementById('btn-login').addEventListener('click', async () => {
-      if (firebaseConfig.apiKey === "YOUR_API_KEY") {
-        // Implement immediate local developer testing simulation mode bypass context automatically
-        console.info("Using mock sandbox verification strategy profile path configuration bypass directives.");
-        currentUser = {
-          uid: "mock-authenticated-user-99",
-          displayName: "Lead Infrastructure Architect",
-          photoURL: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=100&q=80"
-        };
-        document.getElementById('user-avatar').src = currentUser.photoURL;
-        document.getElementById('header-profile-link').href = `#profile/${currentUser.uid}`;
-        showToast("Authenticated into Mock Developer Sandbox Mode profile context.");
-        handleRouting();
+      if (firebaseConfig.apiKey === "AIzaSyBFssTyAssRJjj2Km61wDn96QQOlR41Dsc") {
+        // Keep whatever mock logic was inside this if-statement originally!
         return;
       }
-
+    
       const provider = new firebase.auth.GoogleAuthProvider();
       try {
-        await auth.signInWithPopup(provider);
-        showToast("Google Authentication Identity token acquired successfully.");
+        const result = await auth.signInWithPopup(provider);
+        if (result.user) {
+          showToast("Google Authentication Identity token acquired successfully.");
+          
+          // Forces the page to pick up the active authenticated session variables immediately
+          setTimeout(() => {
+            window.location.reload();
+          }, 500);
+        }
       } catch (err) {
         console.error(err);
         showToast("Security handshakes rejected or canceled.", "error");
