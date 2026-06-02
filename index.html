@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevFlow - Internal Knowledge Base</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f4fe',
+              100: '#dee7fc',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    
+    /* Markdown Styles */
+    .prose p { margin-bottom: 0.75rem; }
+    .prose code { background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.875em; font-family: monospace; }
+    .prose pre code { background: none; padding: 0; }
+    .prose pre { background: #1e293b; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 1rem 0; }
+    .prose ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 0.75rem; }
+    .prose ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 0.75rem; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+
+  <div id="auth-view" class="hidden fixed inset-0 bg-gradient-to-br from-slate-900 to-brand-800 flex items-center justify-center z-50 px-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border border-slate-100">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-50 text-brand-600 text-3xl mb-4 shadow-sm">
+        <i class="fa-solid fa-layer-group"></i>
+      </div>
+      <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">DevFlow</h1>
+      <p class="text-slate-500 mt-2 mb-8">The internal engineering knowledge base. Sign in to ask questions, share answers, and collaborate with team members.</p>
+      
+      <button id="btn-login" class="w-full flex items-center justify-center gap-3 bg-white border border-slate-300 hover:border-slate-400 text-slate-700 font-semibold py-3 px-4 rounded-xl shadow-sm transition duration-150 ease-in-out active:scale-[0.99]">
+        <img src="https://www.gstatic.com/images/branding/product/1x/glook_64dp.png" alt="Google Logo" class="w-6 h-6">
+        Sign in with Google Workspace
+      </button>
+      
+      <div class="mt-6 text-xs text-slate-400">
+        <i class="fa-solid fa-lock mr-1"></i> Restricted to authorized organization domains.
+      </div>
+    </div>
+  </div>
+
+  <div id="app-view" class="hidden flex-1 flex flex-col">
+    
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
+      <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+        
+        <a href="#home" class="flex items-center gap-2 text-xl font-bold text-slate-900 shrink-0">
+          <span class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-md shadow-brand-500/20">
+            <i class="fa-solid fa-layer-group text-sm"></i>
+          </span>
+          <span class="hidden sm:inline">DevFlow</span>
+        </a>
+
+        <div class="flex-1 max-w-2xl relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </div>
+          <input type="text" id="search-input" placeholder="Search questions by title, description or content..." class="w-full bg-slate-100 hover:bg-slate-200/70 focus:bg-white text-slate-900 pl-10 pr-10 py-2 rounded-xl border border-transparent focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all text-sm">
+          <button id="search-clear-btn" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-circle-xmark"></i>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-4 shrink-0">
+          <a href="#ask" class="bg-brand-600 hover:bg-brand-700 text-white font-medium text-sm py-2 px-4 rounded-xl shadow-sm transition flex items-center gap-2">
+            <i class="fa-solid fa-plus text-xs"></i> <span class="hidden md:inline">Ask Question</span>
+          </a>
+
+          <div class="relative group">
+            <button class="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 transition focus:outline-none">
+              <img id="user-avatar" src="" alt="Avatar" class="w-8 h-8 rounded-full border border-slate-200 bg-slate-100">
+              <i class="fa-solid fa-chevron-down text-xs text-slate-400 hidden sm:inline pr-1"></i>
+            </button>
+            <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-1 hidden group-focus-within:block hover:block">
+              <a id="header-profile-link" href="#profile" class="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50">
+                <i class="fa-solid fa-user text-slate-400 w-4"></i> My Profile
+              </a>
+              <hr class="border-slate-100">
+              <button id="btn-logout" class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 text-left">
+                <i class="fa-solid fa-arrow-right-from-bracket w-4"></i> Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </header>
+
+    <div class="bg-slate-100 border-b border-slate-200 py-2.5 px-4">
+      <div class="max-w-7xl mx-auto flex items-center text-xs font-medium text-slate-500" id="breadcrumbs">
+        </div>
+    </div>
+
+    <main class="max-w-7xl w-full mx-auto px-4 py-6 flex-1 flex flex-col md:flex-row gap-6">
+      
+      <section id="main-content" class="flex-1 min-w-0">
+        </section>
+
+      <aside id="sidebar" class="w-full md:w-64 shrink-0 space-y-6">
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-xs">
+          <h3 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-tags text-brand-500"></i> Popular Tags
+          </h3>
+          <div id="sidebar-tags" class="space-y-2">
+            <div class="text-xs text-slate-400 animate-pulse py-2">Loading popular tags...</div>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-brand-50 to-indigo-50 border border-brand-100 rounded-xl p-4">
+          <h3 class="text-xs font-bold text-brand-800 tracking-wider uppercase mb-1.5">Knowledge Base Tip</h3>
+          <p class="text-xs text-brand-900 leading-relaxed">
+            When drafting troubleshooting notes or code snippets, use valid Markdown formatting to help engineers parse the solutions quickly.
+          </p>
+        </div>
+      </aside>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 mt-auto py-4 text-center text-xs text-slate-400">
+      &copy; 2026 DevFlow Knowledge Base Network. All rights reserved. Single-Container Architecture.
+    </footer>
+  </div>
+
+  <script>
+    /*
+     * DEVFLOW SETUP INSTRUCTIONS:
+     * 1. Create a Firebase project in the Firebase Console.
+     * 2. Enable Authentication -> Google Sign-In Provider.
+     * 3. Create a Firestore Database instance.
+     * 4. Replace the credentials placeholder map block below with your actual Firebase App configuration payload object keys.
+     */
+    const firebaseConfig = {
+      apiKey: "AIzaSyBFssTyAssRJjj2Km61wDn96QQOlR41Dsc",
+      authDomain: "simplechibbit-stack-exchange.firebaseapp.com",
+      projectId: "simplechibbit-stack-exchange",
+      storageBucket: "simplechibbit-stack-exchange.firebasestorage.app",
+      messagingSenderId: "971341808258",
+      appId: "1:971341808258:web:469463614b66dd774baa9b"
+    };
+
+    // Initialize Firebase
+    if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+      firebase.initializeApp(firebaseConfig);
+    } else {
+      console.warn("Firebase application details missing. Using demo local mock fallback interceptors where applicable.");
+    }
+
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Application Global Reactive States
+    let currentUser = null;
+    let activeRoute = '#home';
+    let routeParams = {};
+    let searchFilterQuery = '';
+    let selectedTagFilter = null;
+    let selectedSortCriteria = 'newest'; // newest, voted, unanswered, viewed
+
+    // Configure Marked Markdown Renderer options
+    marked.setOptions({
+      highlight: function(code, lang) {
+        if (lang && hljs.getLanguage(lang)) {
+          return hljs.highlight(code, { language: lang }).value;
+        }
+        return hljs.highlightAuto(code).value;
+      },
+      breaks: true
+    });
+
+    // === TOAST COMPONENT HELPERS ===
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm border font-medium transform transition-all duration-300 translate-y-2 opacity-0 ${
+        type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' :
+        type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-blue-50 border-blue-200 text-blue-800'
+      }`;
+      
+      const icon = type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-circle-exclamation' : 'fa-info-circle';
+      toast.innerHTML = `<i class="fa-solid ${icon} text-base shrink-0"></i><div>${message}</div>`;
+      
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 50);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // LOADING STATE HELPER COMPONENT
+    function getSpinnerMarkup() {
+      return `
+        <div class="flex items-center justify-center py-12 w-full">
+          <div class="animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-brand-600"></div>
+        </div>
+      `;
+    }
+
+    // REPUTATION LOGIC HELPER MATRIX
+    async function updateUserStatsAndReputation(userId) {
+      if (firebaseConfig.apiKey === "YOUR_API_KEY") return 100; // Mock profile fallback
+      try {
+        const qSnap = await db.collection('questions').where('authorId', '==', userId).get();
+        let questionsCount = qSnap.size;
+        let totalReputation = 100; // Base baseline structural offset
+
+        qSnap.forEach(doc => {
+          totalReputation += ((doc.data().voteScore || 0) * 10);
+        });
+
+        // Loop over individual separate answer vectors
+        const aSnap = await db.collectionGroup('answers').where('authorId', '==', userId).get();
+        let answersCount = aSnap.size;
+        aSnap.forEach(doc => {
+          totalReputation += ((doc.data().voteScore || 0) * 15);
+          if (doc.data().isAccepted) totalReputation += 50; 
+        });
+
+        await db.collection('users').doc(userId).set({
+          reputation: totalReputation,
+          questionsCount: questionsCount,
+          answersCount: answersCount
+        }, { merge: true });
+
+        return totalReputation;
+      } catch(e) {
+        console.error("Error setting user profile metric maps:", e);
+        return 100;
+      }
+    }
+
+    // === APPLICATION ROUTING MATRIX ENGINE ===
+    function handleRouting() {
+      const hash = window.location.hash || '#home';
+      activeRoute = hash;
+      routeParams = {};
+
+      // Match parameter pattern arrays explicitly
+      if (hash.startsWith('#question/')) {
+        activeRoute = '#question';
+        routeParams.id = hash.split('#question/')[1];
+      } else if (hash.startsWith('#profile/')) {
+        activeRoute = '#profile';
+        routeParams.uid = hash.split('#profile/')[1];
+      }
+
+      renderBreadcrumbs();
+      
+      if (!currentUser) {
+        document.getElementById('auth-view').classList.remove('hidden');
+        document.getElementById('app-view').classList.add('hidden');
+        return;
+      }
+
+      document.getElementById('auth-view').classList.add('hidden');
+      document.getElementById('app-view').classList.remove('hidden');
+
+      // Dispatch layout pipeline components selectively
+      switch (activeRoute) {
+        case '#home':
+          renderHomeView();
+          break;
+        case '#ask':
+          renderAskView();
+          break;
+        case '#question':
+          renderQuestionDetailView(routeParams.id);
+          break;
+        case '#profile':
+          renderProfileView(routeParams.uid || currentUser.uid);
+          break;
+        default:
+          renderHomeView();
+          break;
+      }
+      renderSidebarPopularTags();
+    }
+
+    function renderBreadcrumbs() {
+      const container = document.getElementById('breadcrumbs');
+      let html = `<a href="#home" class="hover:text-brand-600 transition"><i class="fa-solid fa-house mr-1"></i> DevFlow</a>`;
+      
+      if (activeRoute === '#ask') {
+        html += ` <i class="fa-solid fa-chevron-right mx-2 text-[10px] text-slate-300"></i> <span class="text-slate-800">Ask Question</span>`;
+      } else if (activeRoute === '#question') {
+        html += ` <i class="fa-solid fa-chevron-right mx-2 text-[10px] text-slate-300"></i> <span class="text-slate-400">Questions</span> <i class="fa-solid fa-chevron-right mx-2 text-[10px] text-slate-300"></i> <span class="text-slate-800 truncate">Question Content View</span>`;
+      } else if (activeRoute === '#profile') {
+        html += ` <i class="fa-solid fa-chevron-right mx-2 text-[10px] text-slate-300"></i> <span class="text-slate-800">User Profile Spectrum</span>`;
+      } else {
+        html += ` <i class="fa-solid fa-chevron-right mx-2 text-[10px] text-slate-300"></i> <span class="text-slate-800">All Content Board</span>`;
+      }
+      container.innerHTML = html;
+    }
+
+    window.addEventListener('hashchange', handleRouting);
+
+    // === UI SEARCH INPUT INTEGRATION AND EVENT CAPTURING ===
+    const searchInput = document.getElementById('search-input');
+    const searchClearBtn = document.getElementById('search-clear-btn');
+
+    searchInput.addEventListener('input', (e) => {
+      searchFilterQuery = e.target.value.trim().toLowerCase();
+      if (searchFilterQuery.length > 0) {
+        searchClearBtn.classList.remove('hidden');
+      } else {
+        searchClearBtn.classList.add('hidden');
+      }
+      // Re-trigger rendering dynamically if user sits on home screen context
+      if (activeRoute === '#home') {
+        renderHomeView();
+      }
+    });
+
+    searchClearBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      searchFilterQuery = '';
+      searchClearBtn.classList.add('hidden');
+      if (activeRoute === '#home') renderHomeView();
+    });
+
+    // === MOCK FIREBASE SYSTEM LAYER FALLBACKS FOR TRIAL RUNS ===
+    let mockQuestions = [
+      {
+        id: "mock-q1",
+        title: "How to resolve hydration mismatch errors in single-file architectural setups?",
+        body: "We are building an embedded internal documentation engine using vanilla structures. When parsing scripts sequentially, some element attributes trigger inconsistencies. \n\n```javascript\n// Inconsistent code sample block\nconst state = LoadInitialState();\nrenderStateToContainer(state);\n```\nWhat is the verified strategy for aligning DOM snapshots cleanly without pulling heavy libraries like React?",
+        tags: ["javascript", "vanilla-js", "dom-parsing"],
+        authorId: "user-alpha",
+        authorName: "Alex Mercer",
+        authorPhoto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80",
+        createdAt: new Date(Date.now() - 3600000 * 2).getTime(),
+        viewCount: 42,
+        voteScore: 5,
+        answerCount: 1,
+        acceptedAnswerId: "mock-a1"
+      },
+      {
+        id: "mock-q2",
+        title: "Optimizing Firestore subcollection queries across dynamic nested metrics routes",
+        body: "I am mapping out collection chains. Should deep paths like `/questions/{id}/answers/{id}/comments` be flattened into a single base root system if data needs to scale indefinitely?",
+        tags: ["firestore", "database-design", "firebase"],
+        authorId: "user-beta",
+        authorName: "Sarah Connor",
+        authorPhoto: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80",
+        createdAt: new Date(Date.now() - 3600000 * 18).getTime(),
+        viewCount: 124,
+        voteScore: 12,
+        answerCount: 0,
+        acceptedAnswerId: null
+      }
+    ];
+
+    let mockAnswers = {
+      "mock-q1": [
+        {
+          id: "mock-a1",
+          body: "You must enforce strict transactional synchronization. Clear out target containers directly before hydration injection: \n\n```javascript\ncontainer.innerHTML = '';\ncontainer.appendChild(builtNode);\n```\nThis simple sequence mitigates deep mismatch logs instantly.",
+          authorId: "user-gamma",
+          authorName: "Devin Rogers",
+          authorPhoto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80",
+          createdAt: new Date(Date.now() - 3600000).getTime(),
+          voteScore: 4,
+          isAccepted: true
+        }
+      ]
+    };
+
+    let mockComments = {
+      "mock-q1": [],
+      "mock-a1": [
+        {
+          id: "mock-c1",
+          body: "Simple but extremely effective fallback context! Saved our team hours.",
+          authorId: "user-beta",
+          authorName: "Sarah Connor",
+          createdAt: new Date().getTime()
+        }
+      ]
+    };
+
+    let mockVotes = {};
+
+    // === DATA MANIPULATION LAYER INTERFACE ENGINE ===
+    async function getQuestionsFromStore() {
+      if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+        return [...mockQuestions];
+      }
+      const snapshot = await db.collection('questions').orderBy('createdAt', 'desc').get();
+      let list = [];
+      snapshot.forEach(doc => {
+        list.push({ id: doc.id, ...doc.data() });
+      });
+      return list;
+    }
+
+    async function getQuestionDetailsFromStore(id) {
+      if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+        const found = mockQuestions.find(q => q.id === id);
+        if (found) found.viewCount++; // Simulate dynamic increment pipeline
+        return found ? { ...found } : null;
+      }
+      const ref = db.collection('questions').doc(id);
+      const doc = await ref.get();
+      if (!doc.exists) return null;
+      
+      // Concurrently bump views cleanly
+      await ref.update({ viewCount: firebase.firestore.FieldValue.increment(1) });
+      let data = doc.data();
+      data.viewCount++;
+      return { id: doc.id, ...data };
+    }
+
+    async function getAnswersFromStore(qId) {
+      if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+        return mockAnswers[qId] ? [...mockAnswers[qId]] : [];
+      }
+      const snapshot = await db.collection('questions').doc(qId).collection('answers').get();
+      let list = [];
+      snapshot.forEach(doc => {
+        list.push({ id: doc.id, ...doc.data() });
+      });
+      return list;
+    }
+
+    async function getCommentsFromStore(qId, entityId) {
+      if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+        return mockComments[entityId] ? [...mockComments[entityId]] : [];
+      }
+      // Adjust path depending on entity target mapping
+      let ref;
+      if (qId === entityId) {
+        ref = db.collection('questions').doc(qId).collection('comments');
+      } else {
+        ref = db.collection('questions').doc(qId).collection('answers').doc(entityId).collection('comments');
+      }
+      const snapshot = await ref.orderBy('createdAt', 'asc').get();
+      let list = [];
+      snapshot.forEach(doc => {
+        list.push({ id: doc.id, ...doc.data() });
+      });
+      return list;
+    }
+
+    // === UI RENDERERS & EVENT HANDLERS ===
+
+    // RENDERING POPULAR TAGS SIDEBAR PANEL
+    async function renderSidebarPopularTags() {
+      const container = document.getElementById('sidebar-tags');
+      let allTags = [];
+      
+      if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+        mockQuestions.forEach(q => allTags.push(...q.tags));
+      } else {
+        try {
+          const snap = await db.collection('questions').get();
+          snap.forEach(doc => {
+            const data = doc.data();
+            if(data.tags && Array.isArray(data.tags)) allTags.push(...data.tags);
+          });
+        } catch(e) { console.error(e); }
+      }
+
+      const counts = {};
+      allTags.forEach(t => counts[t] = (counts[t] || 0) + 1);
+      const sortedTags = Object.keys(counts).sort((a,b) => counts[b] - counts[a]).slice(0, 8);
+
+      if (sortedTags.length === 0) {
+        container.innerHTML = `<div class="text-xs text-slate-400 py-1">No operational tags found.</div>`;
+        return;
+      }
+
+      container.innerHTML = sortedTags.map(tag => `
+        <button onclick="setTagFilter('${tag}')" class="w-full flex items-center justify-between text-xs px-2.5 py-1.5 rounded-lg transition ${selectedTagFilter === tag ? 'bg-brand-600 text-white font-semibold' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">
+          <span class="flex items-center gap-1.5"><i class="fa-solid fa-tag opacity-70"></i> #${tag}</span>
+          <span class="px-1.5 py-0.2 rounded-md ${selectedTagFilter === tag ? 'bg-brand-700 text-brand-100' : 'bg-slate-200 text-slate-600'} text-[10px] font-bold">${counts[tag]}</span>
+        </button>
+      `).join('') + (selectedTagFilter ? `
+        <button onclick="setTagFilter(null)" class="w-full text-center text-[11px] font-semibold text-rose-600 hover:underline pt-2 border-t border-dashed border-slate-200 mt-2 block">
+          Clear Tag Filter
+        </button>
+      ` : '');
+    }
+
+    window.setTagFilter = function(tag) {
+      selectedTagFilter = tag;
+      if (activeRoute !== '#home') window.location.hash = '#home';
+      renderHomeView();
+      renderSidebarPopularTags();
+    };
+
+    window.setSortCriteria = function(criteria) {
+      selectedSortCriteria = criteria;
+      renderHomeView();
+    };
+
+    // --- HOME INDEX VIEW CONTROLLER ---
+    async function renderHomeView() {
+      const container = document.getElementById('main-content');
+      container.innerHTML = getSpinnerMarkup();
+
+      let questions = [];
+      try {
+        questions = await getQuestionsFromStore();
+      } catch(e) {
+        showToast("Error pulling records from network backend.", "error");
+      }
+
+      // Execute Filter operations Client-Side to offer interactive responses
+      if (searchFilterQuery) {
+        questions = questions.filter(q => 
+          q.title.toLowerCase().includes(searchFilterQuery) || 
+          q.body.toLowerCase().includes(searchFilterQuery)
+        );
+      }
+
+      if (selectedTagFilter) {
+        questions = questions.filter(q => q.tags.includes(selectedTagFilter));
+      }
+
+      // Execute Structural sorting logic parameters
+      if (selectedSortCriteria === 'newest') {
+        questions.sort((a,b) => b.createdAt - a.createdAt);
+      } else if (selectedSortCriteria === 'voted') {
+        questions.sort((a,b) => b.voteScore - a.voteScore);
+      } else if (selectedSortCriteria === 'viewed') {
+        questions.sort((a,b) => b.viewCount - a.viewCount);
+      } else if (selectedSortCriteria === 'unanswered') {
+        questions = questions.filter(q => !q.answerCount || q.answerCount === 0);
+      }
+
+      // Frame Base UI Headers & Filters panel layout template
+      let html = `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Top Technical Inquiries</h1>
+            <p class="text-sm text-slate-500 mt-1">${selectedTagFilter ? `Filtering tag match: <span class="font-bold text-brand-600">#${selectedTagFilter}</span>` : 'Explore architectural queries from internal teams.'}</p>
+          </div>
+          
+          <div class="flex items-center bg-white p-1 rounded-xl border border-slate-200 self-start shadow-xs text-xs font-semibold overflow-x-auto max-w-full">
+            <button onclick="setSortCriteria('newest')" class="px-3 py-1.5 rounded-lg transition whitespace-nowrap ${selectedSortCriteria === 'newest' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-50'}">Newest</button>
+            <button onclick="setSortCriteria('voted')" class="px-3 py-1.5 rounded-lg transition whitespace-nowrap ${selectedSortCriteria === 'voted' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-50'}">Highest Score</button>
+            <button onclick="setSortCriteria('viewed')" class="px-3 py-1.5 rounded-lg transition whitespace-nowrap ${selectedSortCriteria === 'viewed' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-50'}">Most Viewed</button>
+            <button onclick="setSortCriteria('unanswered')" class="px-3 py-1.5 rounded-lg transition whitespace-nowrap ${selectedSortCriteria === 'unanswered' ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-50'}">Unanswered</button>
+          </div>
+        </div>
+      `;
+
+      if (questions.length === 0) {
+        html += `
+          <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center max-w-xl mx-auto my-8">
+            <div class="inline-flex p-4 bg-slate-50 rounded-full text-slate-400 mb-3 text-2xl"><i class="fa-solid fa-folder-open"></i></div>
+            <h3 class="text-base font-bold text-slate-800">No questions found</h3>
+            <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">Be the first to create an absolute standard reference point or ask details for this filter subset context!</p>
+            <a href="#ask" class="inline-block mt-4 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold py-2 px-4 rounded-xl shadow-xs transition">Ask Question</a>
+          </div>
+        `;
+        container.innerHTML = html;
+        return;
+      }
+
+      // Intersect Loop maps
+      html += `<div class="space-y-4">`;
+      questions.forEach(q => {
+        const timeFormatted = new Date(q.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+        const tagBadges = q.tags.map(t => `<button onclick="event.stopPropagation(); setTagFilter('${t}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-medium px-2.5 py-0.5 rounded-md transition">#${t}</button>`).join(' ');
+
+        html += `
+          <div onclick="window.location.hash='#question/${q.id}'" class="bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md transition hover:border-slate-300 cursor-pointer flex flex-col sm:flex-row gap-4 items-start relative group">
+            
+            <div class="flex flex-row sm:flex-col gap-3 sm:gap-2 sm:w-20 items-center justify-start shrink-0 text-slate-500 text-center text-xs w-full sm:pt-1 border-b sm:border-b-0 pb-3 sm:pb-0 border-slate-100">
+              <div class="flex-1 sm:w-full py-1 rounded-lg ${q.voteScore >= 5 ? 'bg-amber-50 text-amber-700 font-bold' : ''}">
+                <span class="block text-sm sm:text-base font-bold text-slate-800 ${q.voteScore >= 5 ? 'text-amber-700' : ''}">${q.voteScore || 0}</span> votes
+              </div>
+              <div class="flex-1 sm:w-full py-1 rounded-lg ${q.acceptedAnswerId ? 'bg-emerald-600 text-white font-bold' : q.answerCount > 0 ? 'border border-emerald-500 text-emerald-600' : ''}">
+                <span class="block text-sm sm:text-base font-bold ${q.acceptedAnswerId ? 'text-white' : q.answerCount > 0 ? 'text-emerald-600' : 'text-slate-800'}">${q.answerCount || 0}</span> answers
+              </div>
+              <div class="flex-1 sm:w-full text-[11px] opacity-70 whitespace-nowrap">
+                <i class="fa-solid fa-eye mr-0.5"></i> ${q.viewCount || 0} views
+              </div>
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <h2 class="text-base font-bold text-slate-900 group-hover:text-brand-600 transition leading-snug pr-4">
+                ${escapeHTML(q.title)}
+              </h2>
+              <p class="text-xs text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">
+                ${escapeHTML(q.body.replace(/[#`*_\-]/g, ''))}
+              </p>
+              
+              <div class="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-slate-50">
+                <div class="flex flex-wrap gap-1.5">${tagBadges}</div>
+                
+                <a href="#profile/${q.authorId}" onclick="event.stopPropagation()" class="flex items-center gap-2 group/user bg-slate-50 hover:bg-slate-100/80 pl-1.5 pr-2.5 py-1 rounded-lg transition ml-auto">
+                  <img src="${q.authorPhoto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=50&q=80'}" class="w-5 h-5 rounded-full border border-slate-200">
+                  <span class="text-[11px] text-slate-600 group-hover/user:text-brand-600 font-medium">${escapeHTML(q.authorName)}</span>
+                  <span class="text-[10px] text-slate-400 font-normal border-l border-slate-200 pl-1.5">${timeFormatted}</span>
+                </a>
+              </div>
+            </div>
+
+          </div>
+        `;
+      });
+      html += `</div>`;
+      container.innerHTML = html;
+    }
+
+    // --- ASK QUESTION VIEW CONTROLLER ---
+    function renderAskView() {
+      const container = document.getElementById('main-content');
+      container.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 max-w-3xl mx-auto shadow-sm">
+          <div class="mb-5 border-b border-slate-100 pb-4">
+            <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Post a Technical Question</h1>
+            <p class="text-xs text-slate-500 mt-1">Provide clear parameters, environment specifics, and markdown-formatted error stack traces.</p>
+          </div>
+
+          <form id="ask-form" class="space-y-5">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Question Title</label>
+              <input type="text" id="ask-title" required placeholder="e.g., How to securely bypass CORS proxies during local integration testing maps?" class="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 rounded-xl px-4 py-2.5 text-sm font-medium transition focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Description Context (Markdown Supported)</label>
+              <textarea id="ask-body" rows="8" required placeholder="Detail the replication parameters, dependencies, and code configuration logic blocks explicitly..." class="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 rounded-xl px-4 py-3 text-sm font-medium transition focus:outline-none font-mono"></textarea>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tags (Comma-separated)</label>
+              <input type="text" id="ask-tags" required placeholder="javascript, web-security, cors, configuration" class="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 rounded-xl px-4 py-2.5 text-sm font-medium transition focus:outline-none">
+              <p class="text-[11px] text-slate-400 mt-1">Minimum 1 tag required. Use lower-case standard characters.</p>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-end gap-3">
+              <a href="#home" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-100 transition">Cancel</a>
+              <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl shadow-md transition transform active:scale-[0.98]">Publish Question</button>
+            </div>
+          </form>
+        </div>
+      `;
+
+      document.getElementById('ask-form').addEventListener('submit', handlePublishQuestionSubmit);
+    }
+
+    async function handlePublishQuestionSubmit(e) {
+      e.preventDefault();
+      const title = document.getElementById('ask-title').value.trim();
+      const body = document.getElementById('ask-body').value.trim();
+      const tagsRaw = document.getElementById('ask-tags').value.trim();
+
+      if (!title || !body || !tagsRaw) {
+        showToast("All functional entry vectors must be completed.", "error");
+        return;
+      }
+
+      const tags = tagsRaw.split(',').map(t => t.trim().toLowerCase()).filter(t => t.length > 0);
+      if (tags.length === 0) {
+        showToast("Please assign at least one contextual reference tag.", "error");
+        return;
+      }
+
+      const newQuestionPayload = {
+        title: title,
+        body: body,
+        tags: tags,
+        authorId: currentUser.uid,
+        authorName: currentUser.displayName || 'Anonymous Dev',
+        authorPhoto: currentUser.photoURL || '',
+        createdAt: Date.now(),
+        viewCount: 0,
+        voteScore: 0,
+        answerCount: 0,
+        acceptedAnswerId: null
+      };
+
+      if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+        // Mock execution step
+        const mockId = "mock-generated-" + Math.random().toString(36).substr(2, 9);
+        mockQuestions.unshift({ id: mockId, ...newQuestionPayload });
+        showToast("Mock question published successfully!");
+        window.location.hash = '#home';
+        return;
+      }
+
+      try {
+        const ref = await db.collection('questions').add(newQuestionPayload);
+        await updateUserStatsAndReputation(currentUser.uid);
+        showToast("Question successfully cataloged to the knowledge pool!");
+        window.location.hash = `#question/${ref.id}`;
+      } catch (err) {
+        console.error(err);
+        showToast("Database execution mapping failed.", "error");
+      }
+    }
+
+    // --- DETAIL THREAD CONTROLLER VIEW ---
+    async function renderQuestionDetailView(questionId) {
+      const container = document.getElementById('main-content');
+      container.innerHTML = getSpinnerMarkup();
+
+      let question = null;
+      let answers = [];
+
+      try {
+        question = await getQuestionDetailsFromStore(questionId);
+        if (question) {
+          answers = await getAnswersFromStore(questionId);
+        }
+      } catch(e) {
+        console.error(e);
+      }
+
+      if (!question) {
+        container.innerHTML = `
+          <div class="bg-white rounded-xl border border-slate-200 p-8 text-center my-6">
+            <i class="fa-solid fa-triangle-exclamation text-rose-500 text-3xl mb-2"></i>
+            <h3 class="text-base font-bold text-slate-800">Target resource missing</h3>
+            <p class="text-xs text-slate-400 mt-1">The parameter references a point that does not exist or was purged.</p>
+            <a href="#home" class="mt-4 inline-block bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2 px-4 rounded-xl transition">Return Home</a>
+          </div>
+        `;
+        return;
+      }
+
+      // Sort responses dynamically matching priorities: Accepted first, then highest vote scores
+      answers.sort((a, b) => {
+        if (a.isAccepted) return -1;
+        if (b.isAccepted) return 1;
+        return b.voteScore - a.voteScore;
+      });
+
+      const qTimeFormatted = new Date(question.createdAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const qTagsMarkup = question.tags.map(t => `<button onclick="setTagFilter('${t}')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold px-2.5 py-0.5 rounded-md transition">#${t}</button>`).join(' ');
+
+      // Base Structure generation
+      let html = `
+        <article class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs mb-6">
+          <header class="border-b border-slate-100 pb-4 mb-4">
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight tracking-tight">${escapeHTML(question.title)}</h1>
+            <div class="flex flex-wrap items-center gap-4 mt-3 text-xs text-slate-400 font-medium">
+              <span>Asked <b class="text-slate-600">${qTimeFormatted}</b></span>
+              <span>Viewed <b class="text-slate-600">${question.viewCount} times</b></span>
+              <span>Net Rating: <b class="text-slate-600">${question.voteScore}</b></span>
+            </div>
+          </header>
+
+          <div class="flex gap-4 items-start">
+            <div class="flex flex-col items-center gap-1.5 bg-slate-50 px-2 py-3 rounded-xl border border-slate-100 shrink-0">
+              <button onclick="handleVoteSubmit('questions', '${question.id}', 1, '${question.authorId}')" class="w-8 h-8 rounded-full hover:bg-brand-100 text-slate-400 hover:text-brand-600 flex items-center justify-center transition focus:outline-none" title="Upvote">
+                <i class="fa-solid fa-caret-up text-xl"></i>
+              </button>
+              <span class="text-base font-extrabold text-slate-800">${question.voteScore}</span>
+              <button onclick="handleVoteSubmit('questions', '${question.id}', -1, '${question.authorId}')" class="w-8 h-8 rounded-full hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center transition focus:outline-none" title="Downvote">
+                <i class="fa-solid fa-caret-down text-xl"></i>
+              </button>
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <div class="prose text-sm text-slate-800 leading-relaxed max-w-none">
+                ${marked.parse(question.body)}
+              </div>
+              
+              <div class="flex flex-wrap items-center justify-between gap-4 mt-6 pt-4 border-t border-slate-50">
+                <div class="flex flex-wrap gap-1.5">${qTagsMarkup}</div>
+                
+                <a href="#profile/${question.authorId}" class="flex items-center gap-2.5 bg-slate-50 hover:bg-slate-100/80 p-1.5 pr-3 rounded-xl border border-slate-100 transition">
+                  <img src="${question.authorPhoto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=50&q=80'}" class="w-7 h-7 rounded-full border border-slate-200">
+                  <div class="text-left">
+                    <span class="block text-xs font-bold text-slate-700 leading-tight">${escapeHTML(question.authorName)}</span>
+                    <span class="text-[10px] text-slate-400">Question Author</span>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-slate-100 bg-slate-50/50 rounded-xl p-4">
+            <h4 class="text-xs font-bold text-slate-700 tracking-wider uppercase mb-2 flex items-center gap-1.5" onclick="toggleThreadContainer('comments-q-${question.id}')">
+              <i class="fa-solid fa-comments text-slate-400"></i> Conversation Thread
+            </h4>
+            <div id="comments-q-${question.id}" class="space-y-2 mb-3">
+              </div>
+            
+            <div class="flex gap-2 mt-2">
+              <input type="text" id="input-comment-q-${question.id}" placeholder="Clarify details or suggest additions..." class="flex-1 bg-white border border-slate-200 focus:border-brand-500 rounded-lg px-3 py-1.5 text-xs focus:outline-none transition">
+              <button onclick="handlePostCommentSubmit('${question.id}', '${question.id}', 'input-comment-q-${question.id}')" class="bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs px-3 py-1.5 rounded-lg transition shrink-0">Comment</button>
+            </div>
+          </div>
+        </article>
+
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="text-base font-extrabold text-slate-900">${answers.length} Responses cataloged</h2>
+        </div>
+
+        <div class="space-y-4" id="answers-container-block">
+      `;
+
+      if (answers.length === 0) {
+        html += `
+          <div class="bg-white rounded-xl border border-slate-200 p-8 text-center text-xs text-slate-400 shadow-xs mb-6">
+            No active solutions posted yet. Share a structured resolution strategy below!
+          </div>
+        `;
+      } else {
+        answers.forEach(ans => {
+          const ansTimeFormatted = new Date(ans.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+          const isQuestionOwner = currentUser.uid === question.authorId;
+
+          html += `
+            <div class="bg-white rounded-xl border ${ans.isAccepted ? 'border-emerald-500 ring-2 ring-emerald-500/10' : 'border-slate-200'} p-5 shadow-xs relative">
+              ${ans.isAccepted ? `
+                <div class="absolute top-0 right-5 transform -translate-y-1/2 bg-emerald-600 text-white text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-xs flex items-center gap-1">
+                  <i class="fa-solid fa-circle-check"></i> Verified Acceptable Solution
+                </div>
+              ` : ''}
+
+              <div class="flex gap-4 items-start">
+                <div class="flex flex-col items-center gap-1 bg-slate-50 px-2 py-2.5 rounded-xl border border-slate-100 shrink-0">
+                  <button onclick="handleVoteSubmit('answers', '${ans.id}', 1, '${ans.authorId}', '${question.id}')" class="w-7 h-7 rounded-full hover:bg-brand-100 text-slate-400 hover:text-brand-600 flex items-center justify-center transition focus:outline-none">
+                    <i class="fa-solid fa-caret-up text-lg"></i>
+                  </button>
+                  <span class="text-sm font-extrabold text-slate-800">${ans.voteScore || 0}</span>
+                  <button onclick="handleVoteSubmit('answers', '${ans.id}', -1, '${ans.authorId}', '${question.id}')" class="w-7 h-7 rounded-full hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center transition focus:outline-none">
+                    <i class="fa-solid fa-caret-down text-lg"></i>
+                  </button>
+
+                  ${isQuestionOwner ? `
+                    <button onclick="handleToggleAcceptanceStatus('${question.id}', '${ans.id}', ${ans.isAccepted})" class="mt-2 text-xl focus:outline-none transition ${ans.isAccepted ? 'text-emerald-600' : 'text-slate-300 hover:text-emerald-500'}" title="Toggle Acceptance Status Verification">
+                      <i class="fa-solid fa-circle-check"></i>
+                    </button>
+                  ` : ans.isAccepted ? `
+                    <div class="mt-2 text-emerald-600 text-base" title="Accepted by author"><i class="fa-solid fa-circle-check"></i></div>
+                  ` : ''}
+                </div>
+
+                <div class="flex-1 min-w-0">
+                  <div class="prose text-sm text-slate-800 leading-relaxed max-w-none">
+                    ${marked.parse(ans.body)}
+                  </div>
+
+                  <div class="flex items-center justify-end mt-4 pt-3 border-t border-slate-50">
+                    <a href="#profile/${ans.authorId}" class="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 transition p-1.5 pr-2.5 rounded-lg">
+                      <img src="${ans.authorPhoto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=50&q=80'}" class="w-5 h-5 rounded-full border border-slate-200">
+                      <span class="text-[11px] font-bold text-slate-600">${escapeHTML(ans.authorName)}</span>
+                      <span class="text-[10px] text-slate-400 border-l border-slate-200 pl-1.5">${ansTimeFormatted}</span>
+                    </a>
+                  </div>
+
+                  <div class="mt-4 pt-4 border-t border-slate-100 bg-slate-50/50 rounded-xl p-3.5">
+                    <div id="comments-a-${ans.id}" class="space-y-1.5 mb-2">
+                      </div>
+                    <div class="flex gap-2">
+                      <input type="text" id="input-comment-a-${ans.id}" placeholder="Request clarification or track deviations..." class="flex-1 bg-white border border-slate-200 focus:border-brand-500 rounded-lg px-2.5 py-1 text-xs focus:outline-none transition">
+                      <button onclick="handlePostCommentSubmit('${question.id}', '${ans.id}', 'input-comment-a-${ans.id}')" class="bg-slate-700 hover:bg-slate-800 text-white font-medium text-xs px-2.5 py-1 rounded-lg transition shrink-0">Reply</button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      html += `
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs mt-6">
+          <h3 class="text-sm font-bold text-slate-900 tracking-wide uppercase mb-2">Your Architectural Solution Contribution</h3>
+          <p class="text-xs text-slate-400 mb-3 leading-relaxed">Formulate a comprehensive strategy using verified diagnostic steps. Code snippets and references are highly encouraged.</p>
+          
+          <form id="answer-composition-form" class="space-y-4">
+            <textarea id="answer-body-input" rows="6" required placeholder="Draft responsive code configurations, metrics configurations, or process solutions block logs..." class="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none transition font-mono"></textarea>
+            <div class="flex items-center justify-end">
+              <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl shadow-md transition transform active:scale-[0.98]">Publish Solution</button>
+            </div>
+          </form>
+        </div>
+      `;
+
+      container.innerHTML = html;
+      
+      // Execute Post-Render Syntax Highlighting via Highlight JS library execution context loop
+      setTimeout(() => {
+        document.querySelectorAll('pre code').forEach((el) => {
+          hljs.highlightElement(el);
+        });
+      }, 50);
+
+      // Async fetch matching nested conversational string comments tracks arrays sequentially
+      loadCommentsThreadAsync(questionId, questionId, `comments-q-${questionId}`);
+      answers.forEach(a => {
+        loadCommentsThreadAsync(questionId, a.id, `comments-a-${a.id}`);
+      });
+
+      // Hook up primary Answer publishing listener mapping framework configurations
+      document.getElementById('answer-composition-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleAnswerPostSubmit(questionId);
+      });
+    }
+
+    // DISPATCH SUB-THREAD COMMENTS RENDER LOGIC
+    async function loadCommentsThreadAsync(qId, entityId, targetDOMContainerId) {
+      const container = document.getElementById(targetDOMContainerId);
+      if(!container) return;
+      
+      let commentsList = [];
+      try {
+        commentsList = await getCommentsFromStore(qId, entityId);
+      } catch(e) { console.error(e); }
+
+      if (commentsList.length === 0) {
+        container.innerHTML = `<p class="text-[11px] text-slate-400 italic">No notes logged on this point.</p>`;
+        return;
+      }
+
+      container.innerHTML = commentsList.map(c => `
+        <div class="text-xs border-b border-slate-100/60 pb-1.5 last:border-0 leading-relaxed text-slate-700">
+          <span class="font-bold text-slate-900">${escapeHTML(c.authorName)}:</span> ${escapeHTML(c.body)}
+          <span class="text-[10px] text-slate-400 ml-1 font-mono">${new Date(c.createdAt).toLocaleDateString(undefined, {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'})}</span>
+        </div>
+      `).join('');
+    }
+
+    // POST COMMENT ACTIONS INTERCEPT ENGINE HANDLER
+    async function handlePostCommentSubmit(qId, entityId, inputElementId) {
+      const inputEl = document.getElementById(inputElementId);
+      const text = inputEl.value.trim();
+      if (!text) return;
+
+      const payload = {
+        body: text,
+        authorId: currentUser.uid,
+        authorName: currentUser.displayName || 'Anonymous Engineer',
+        createdAt: Date.now()
+      };
+
+      if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+        if (!mockComments[entityId]) mockComments[entityId] = [];
+        mockComments[entityId].push({ id: "mock-c-" + Math.random(), ...payload });
+        inputEl.value = '';
+        showToast("Mock comment added!");
+        
+        let containerTarget = inputElementId.startsWith('input-comment-q') ? `comments-q-${qId}` : `comments-a-${entityId}`;
+        loadCommentsThreadAsync(qId, entityId, containerTarget);
+        return;
+      }
+
+      try {
+        let ref;
+        if (qId === entityId) {
+          ref = db.collection('questions').doc(qId).collection('comments');
+        } else {
+          ref = db.collection('questions').doc(qId).collection('answers').doc(entityId).collection('comments');
+        }
+        await ref.add(payload);
+        inputEl.value = '';
+        showToast("Comment successfully apppended.");
+        
+        let containerTarget = inputElementId.startsWith('input-comment-q') ? `comments-q-${qId}` : `comments-a-${entityId}`;
+        loadCommentsThreadAsync(qId, entityId, containerTarget);
+      } catch(err) {
+        console.error(err);
+        showToast("Failed to write comment link document.", "error");
+      }
+    }
+
+    // ANSWER SUBMISSION ACTION INTERCEPT HANDLER
+    async function handleAnswerPostSubmit(questionId) {
+      const bodyInput = document.getElementById('answer-body-input');
+      const text = bodyInput.value.trim();
+      if(!text) {
+        showToast("Answer field block data configuration cannot be parsed null.", "error");
+        return;
+      }
+
+      const payload = {
+        body: text,
+        authorId: currentUser.uid,
+        authorName: currentUser.displayName || 'Dev Worker',
+        authorPhoto: currentUser.photoURL || '',
+        createdAt: Date.now(),
+        voteScore: 0,
+        isAccepted: false
+      };
+
+      if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+        if(!mockAnswers[questionId]) mockAnswers[questionId] = [];
+        mockAnswers[questionId].push({ id: "mock-ans-" + Math.random().toString(36).substr(2,5), ...payload });
+        const qIdx = mockQuestions.findIndex(q => q.id === questionId);
+        if(qIdx !== -1) mockQuestions[qIdx].answerCount++;
+        bodyInput.value = '';
+        showToast("Mock answer cached.");
+        renderQuestionDetailView(questionId);
+        return;
+      }
+
+      try {
+        const qRef = db.collection('questions').doc(questionId);
+        await qRef.collection('answers').add(payload);
+        await qRef.update({ answerCount: firebase.firestore.FieldValue.increment(1) });
+        await updateUserStatsAndReputation(currentUser.uid);
+
+        bodyInput.value = '';
+        showToast("Solution appended to active matrix thread!");
+        renderQuestionDetailView(questionId);
+      } catch(err) {
+        console.error(err);
+        showToast("Unable to commit answer data instance.", "error");
+      }
+    }
+
+    // ACCEPTANCE TOGGLE ACTION LOGIC ENGINE
+    window.handleToggleAcceptanceStatus = async function(questionId, answerId, currentStatus) {
+      const targetState = !currentStatus;
+
+      if(firebaseConfig.apiKey === "YOUR_API_KEY") {
+        const ansList = mockAnswers[questionId] || [];
+        ansList.forEach(a => {
+          if(a.id === answerId) a.isAccepted = targetState;
+          else if(targetState) a.isAccepted = false; // reset others if establishing true single resolution rule
+        });
+        const qObj = mockQuestions.find(q => q.id === questionId);
+        if(qObj) qObj.acceptedAnswerId = targetState ? answerId : null;
+        showToast(targetState ? "Solution verified!" : "Verification metrics revoked.");
+        renderQuestionDetailView(questionId);
+        return;
+      }
+
+      try {
+        const qRef = db.collection('questions').doc(questionId);
+        const ansCollRef = qRef.collection('answers');
+        
+        if (targetState) {
+          // Reset any alternative previously accepted solution states to clear conflict states
+          const prevAcceptedSnap = await ansCollRef.where('isAccepted', '==', true).get();
+          const batch = db.batch();
+          prevAcceptedSnap.forEach(doc => {
+            batch.update(ansCollRef.doc(doc.id), { isAccepted: false });
+          });
+          batch.update(ansCollRef.doc(answerId), { isAccepted: true });
+          batch.update(qRef, { acceptedAnswerId: answerId });
+          await batch.commit();
+        } else {
+          await ansCollRef.doc(answerId).update({ isAccepted: false });
+          await qRef.update({ acceptedAnswerId: null });
+        }
+
+        // Re-compile relevant owner reputations dynamically
+        const ansDoc = await ansCollRef.doc(answerId).get();
+        if(ansDoc.exists) {
+          await updateUserStatsAndReputation(ansDoc.data().authorId);
+        }
+
+        showToast(targetState ? "Solution marker explicitly committed." : "Acceptance status revoked.");
+        renderQuestionDetailView(questionId);
+      } catch(err) {
+        console.error(err);
+        showToast("Failed to alter transactional operational state mapping parameters.", "error");
+      }
+    };
+
+    // --- VOTING TRANSFERS SUBMISSION STRATEGY ---
+    window.handleVoteSubmit = async function(collectionName, targetId, voteValue, authorId, optionalParentQuestionId = null) {
+      if(currentUser.uid === authorId) {
+        showToast("Self-voting parameters are blocked to prevent credit system inflating adjustments.", "error");
+        return;
+      }
+
+      if(firebaseConfig.apiKey === "YOUR_API_KEY") {
+        // Handle mock increment operations cleanly
+        if (collectionName === 'questions') {
+          const match = mockQuestions.find(q => q.id === targetId);
+          if (match) match.voteScore += voteValue;
+        } else {
+          const list = mockAnswers[optionalParentQuestionId] || [];
+          const match = list.find(a => a.id === targetId);
+          if (match) match.voteScore += voteValue;
+        }
+        showToast("Mock vote accounted for!");
+        if (activeRoute === '#home') renderHomeView();
+        if (activeRoute === '#question') renderQuestionDetailView(optionalParentQuestionId || targetId);
+        return;
+      }
+
+      // Configure paths natively aligning Firestore architectures
+      let docRef;
+      let voteTrackerRef;
+      
+      if (collectionName === 'questions') {
+        docRef = db.collection('questions').doc(targetId);
+        voteTrackerRef = docRef.collection('votes').doc(currentUser.uid);
+      } else {
+        docRef = db.collection('questions').doc(optionalParentQuestionId).collection('answers').doc(targetId);
+        voteTrackerRef = docRef.collection('votes').doc(currentUser.uid);
+      }
+
+      try {
+        const existingVoteDoc = await voteTrackerRef.get();
+        let voteDelta = voteValue;
+
+        if (existingVoteDoc.exists) {
+          const currentVoteDataValue = existingVoteDoc.data().value;
+          if (currentVoteDataValue === voteValue) {
+            showToast("Duplicate operational metrics signature detected. Rating already applied.", "info");
+            return;
+          } else {
+            // User switching their score vector inverse polarity direction setup tracking adjustments
+            voteDelta = voteValue * 2;
+          }
+        }
+
+        const batch = db.batch();
+        batch.set(voteTrackerRef, { value: voteValue });
+        batch.update(docRef, { voteScore: firebase.firestore.FieldValue.increment(voteDelta) });
+        await batch.commit();
+
+        await updateUserStatsAndReputation(authorId);
+        showToast("Reputation scoring adjustments finalized across tracking metrics.");
+
+        if (activeRoute === '#home') renderHomeView();
+        if (activeRoute === '#question') renderQuestionDetailView(optionalParentQuestionId || targetId);
+      } catch(err) {
+        console.error(err);
+        showToast("Error parsing cryptographic transaction tokens securely.", "error");
+      }
+    };
+
+    // --- LIGHTWEIGHT PROFILE SPEC VIEW ---
+    async function renderProfileView(userId) {
+      const container = document.getElementById('main-content');
+      container.innerHTML = getSpinnerMarkup();
+
+      let targetUserMetrics = { reputation: 100, questionsCount: 0, answersCount: 0 };
+      let userQuestionsList = [];
+
+      if(firebaseConfig.apiKey === "YOUR_API_KEY") {
+        userQuestionsList = mockQuestions.filter(q => q.authorId === userId);
+        targetUserMetrics.questionsCount = userQuestionsList.length;
+        targetUserMetrics.reputation = 100 + (userQuestionsList.length * 10);
+      } else {
+        try {
+          targetUserMetrics.reputation = await updateUserStatsAndReputation(userId);
+          const uDoc = await db.collection('users').doc(userId).get();
+          if(uDoc.exists) targetUserMetrics = { ...targetUserMetrics, ...uDoc.data() };
+
+          const qSnap = await db.collection('questions').where('authorId', '==', userId).get();
+          qSnap.forEach(d => userQuestionsList.push({ id: d.id, ...d.data() }));
+        } catch(e) { console.error(e); }
+      }
+
+      const qMarkupRows = userQuestionsList.map(q => `
+        <div class="flex items-center justify-between text-xs p-3 hover:bg-slate-50 rounded-lg transition border-b border-slate-100 last:border-0">
+          <a href="#question/${q.id}" class="text-brand-600 font-semibold hover:underline truncate max-w-[70%]">${escapeHTML(q.title)}</a>
+          <span class="text-slate-400 font-mono text-[11px] shrink-0 bg-slate-100 px-2 py-0.5 rounded-md font-bold">${q.voteScore || 0} net score</span>
+        </div>
+      `).join('');
+
+      container.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs max-w-2xl mx-auto">
+          <div class="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left border-b border-slate-100 pb-5 mb-5">
+            <div class="w-16 h-16 rounded-full bg-brand-600 text-white flex items-center justify-center text-3xl font-bold shadow-md">
+              <i class="fa-solid fa-id-badge"></i>
+            </div>
+            <div>
+              <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Technical Profile Spectrum</h1>
+              <p class="text-xs text-slate-400 mt-0.5">UID Token Reference Identifier: <span class="font-mono text-slate-500">${userId}</span></p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 text-center mb-6">
+            <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl">
+              <span class="block text-xl font-black text-brand-600">${targetUserMetrics.reputation || 100}</span>
+              <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Reputation</span>
+            </div>
+            <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl">
+              <span class="block text-xl font-black text-slate-800">${targetUserMetrics.questionsCount || 0}</span>
+              <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Inquiries</span>
+            </div>
+            <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl">
+              <span class="block text-xl font-black text-slate-800">${targetUserMetrics.answersCount || 0}</span>
+              <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Solutions</span>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><i class="fa-solid fa-clock-rotate-left text-slate-400"></i> Authored Inquiries</h3>
+            <div class="bg-white border border-slate-100 rounded-xl divide-y divide-slate-100 overflow-hidden">
+              ${userQuestionsList.length === 0 ? `<p class="text-xs text-slate-400 p-4 text-center">No structural entries initialized by this developer profile yet.</p>` : qMarkupRows}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // UTILITY SANITIZATION INTERCEPT FUNCTION ENGINE
+    function escapeHTML(str) {
+      if(!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    // === USER REGISTRATION LIFECYCLE EVENT CONTROLLERS ===
+    auth.onAuthStateChanged(async (user) => {
+      currentUser = user;
+      
+      if (user) {
+        document.getElementById('user-avatar').src = user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=50&q=80';
+        document.getElementById('header-profile-link').href = `#profile/${user.uid}`;
+        
+        if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+          // Sync account payload to infrastructure cleanly
+          await db.collection('users').doc(user.uid).set({
+            displayName: user.displayName,
+            photoURL: user.photoURL
+          }, { merge: true });
+        }
+      } else {
+        document.getElementById('user-avatar').src = '';
+      }
+      handleRouting();
+    });
+
+    // SIGN IN ACTION INTERCEPTS
+    document.getElementById('btn-login').addEventListener('click', async () => {
+      if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+        // Implement immediate local developer testing simulation mode bypass context automatically
+        console.info("Using mock sandbox verification strategy profile path configuration bypass directives.");
+        currentUser = {
+          uid: "mock-authenticated-user-99",
+          displayName: "Lead Infrastructure Architect",
+          photoURL: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=100&q=80"
+        };
+        document.getElementById('user-avatar').src = currentUser.photoURL;
+        document.getElementById('header-profile-link').href = `#profile/${currentUser.uid}`;
+        showToast("Authenticated into Mock Developer Sandbox Mode profile context.");
+        handleRouting();
+        return;
+      }
+
+      const provider = new firebase.auth.GoogleAuthProvider();
+      try {
+        await auth.signInWithPopup(provider);
+        showToast("Google Authentication Identity token acquired successfully.");
+      } catch (err) {
+        console.error(err);
+        showToast("Security handshakes rejected or canceled.", "error");
+      }
+    });
+
+    // SIGN OUT ACTION INTERCEPTS
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+      if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+        currentUser = null;
+        showToast("Exited local mock framework context container.");
+        handleRouting();
+        return;
+      }
+      try {
+        await auth.signOut();
+        showToast("Session security variables unmapped. Logged out cleanly.");
+      } catch(err) {
+        console.error(err);
+      }
+    });
+
+    // INITIAL TRIGGER EXECUTION ROUTE KICKSTART PIPE ON WINDOW CONTENT MOUNT COMPLETE
+    document.addEventListener("DOMContentLoaded", () => {
+      handleRouting();
+    });
+  </script>
+</body>
+</html>
